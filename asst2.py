@@ -169,7 +169,7 @@ else:
     print('Did not converge')
 
 # Initial guess for joint angles for long iteration
-theta0_long = np.array([1.0,0,-1.0,0,0.5,0])
+theta0_long = np.array([1.0,0,-1.0,0.6,0.5,-0.2])
 
 [theta_sol_long, success_long] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_long, tol_ang, tol_lin,long_file)
 
@@ -177,3 +177,4 @@ if success_long:
     print('Converged')
 else:
     print('Did not converge')
+
