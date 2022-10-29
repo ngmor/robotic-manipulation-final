@@ -2,6 +2,7 @@
 
 import modern_robotics as mr
 import numpy as np
+import os
 
 
 
@@ -72,6 +73,16 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
         thetalist = thetalist \
                     + np.dot(np.linalg.pinv(mr.JacobianBody(Blist, \
                                                          thetalist)), Vb)
+        # Bound thetas between 2pi and -2pi
+        # Might not do this in every case, but it works for this robot,
+        # which only has revolute joints with these bounds
+        for j, theta in enumerate(thetalist):
+            while not ((thetalist[j] < 2*np.pi) and (thetalist[j] > -2*np.pi)):
+                if thetalist[j] >= 2*np.pi:
+                    thetalist[j] -= 2*np.pi
+                elif thetalist[j] <= -2*np.pi:
+                    thetalist[j] += 2*np.pi
+
         i = i + 1
         Tsb = mr.FKinBody(M, Blist, thetalist)
         Vb = mr.se3ToVec(mr.MatrixLog6(np.dot(mr.TransInv(Tsb), T)))
@@ -138,14 +149,31 @@ Tsb_desired = np.array([
 tol_ang = 0.001 # rad
 tol_lin = 0.0001 # m
 
-csv_file = 'asst2_csvs/test.csv'
+# File saving
+folder = 'asst2_csvs'
+if folder != '':
+    if not os.path.exists(folder):
+        os.mkdir(folder)
 
-# Initial guess for joint angles
-theta0 = np.array([0,0,0,0,0,0])
+short_file = folder + '/short_iterates.csv'
+long_file = folder + '/long_iterates.csv'
 
-[thetai, success] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0, tol_ang, tol_lin,csv_file)
+# Initial guess for joint angles for short iteration
+theta0_short = np.array([1.763,0,-1.825,1.0,1.578,0])
 
-if success:
-    print('\nConverged')
+[theta_sol_short, success_short] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_short, tol_ang, tol_lin,short_file)
+
+if success_short:
+    print('Converged')
 else:
-    print('\nDid not converge')
+    print('Did not converge')
+
+# Initial guess for joint angles for long iteration
+theta0_long = np.array([1.0,0,-1.0,0,0.5,0])
+
+[theta_sol_long, success_long] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_long, tol_ang, tol_lin,long_file)
+
+if success_long:
+    print('Converged')
+else:
+    print('Did not converge')
