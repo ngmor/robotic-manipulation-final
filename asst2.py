@@ -188,7 +188,50 @@ else:
 
 # Plots
 
+# End effector position
+# Generate end effector position data using FKinBody
+end_effector_x_short = []
+end_effector_y_short = []
+end_effector_z_short = []
+for i, theta in enumerate(theta_iter_short):
+    Tsb = mr.FKinBody(M,Jb_Home,theta)
+    end_effector_x_short.append(Tsb[0,3])
+    end_effector_y_short.append(Tsb[1,3])
+    end_effector_z_short.append(Tsb[2,3])
 
+
+end_effector_x_long = []
+end_effector_y_long = []
+end_effector_z_long = []
+for theta in theta_iter_long:
+    Tsb = mr.FKinBody(M,Jb_Home,theta)
+    end_effector_x_long.append(Tsb[0,3])
+    end_effector_y_long.append(Tsb[1,3])
+    end_effector_z_long.append(Tsb[2,3])
+
+# Get start and end points
+start_x = [end_effector_x_short[0],end_effector_x_long[0]]
+start_y = [end_effector_y_short[0],end_effector_y_long[0]]
+start_z = [end_effector_z_short[0],end_effector_z_long[0]]
+
+end_x = [end_effector_x_short[-1],end_effector_x_long[-1]]
+end_y = [end_effector_y_short[-1],end_effector_y_long[-1]]
+end_z = [end_effector_z_short[-1],end_effector_z_long[-1]]
+
+fig_3d = plt.figure('End effector position from initial guess to convergence')
+ax3d = plt.axes(projection='3d')
+ax3d.plot(end_effector_x_short, end_effector_y_short, end_effector_z_short,label='short')
+ax3d.plot(end_effector_x_long, end_effector_y_long, end_effector_z_long,label='long')
+ax3d.scatter(start_x, start_y, start_z,label='start',c='black',marker='o')
+ax3d.scatter(end_x, end_y, end_z,label='end',c='black',marker='x')
+ax3d.set_xlabel('x (m)')
+ax3d.set_ylabel('y (m)')
+ax3d.set_zlabel('z (m)')
+ax3d.set_title('End effector position from initial guess to convergence')
+ax3d.legend()
+
+
+# linear error
 fig_err_lin = plt.figure('Linear error over iterations')
 
 ax_err_lin = fig_err_lin.add_subplot()
@@ -200,6 +243,7 @@ ax_err_lin.plot(np.arange(len(err_lin_iter_short)), err_lin_iter_short,label='sh
 ax_err_lin.plot(np.arange(len(err_lin_iter_long)), err_lin_iter_long,label='long')
 ax_err_lin.legend()
 
+# Angular error
 fig_err_ang = plt.figure('Angular error over iterations')
 
 ax_err_ang = fig_err_ang.add_subplot()
