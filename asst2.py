@@ -30,6 +30,9 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
                      a solution and FALSE means that it ran through the set
                      number of maximum iterations without finding a solution
                      within the tolerances eomg and ev.
+    :return theta_iterations: The thetalist at each performed iteration
+    :return err_lin_iterations: The linear error at each performed iteration
+    :return err_ang_iterations: The angular error at each performed iteration
     Uses an iterative Newton-Raphson root-finding method.
     The maximum number of iterations before the algorithm is terminated has
     been hardcoded in as a variable called maxiterations. It is set to 20 at
@@ -56,12 +59,15 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
     thetalist = np.array(thetalist0).copy()
     i = 0
     maxiterations = 20
+
+    # Split out some of these calculations so we can print them
     Tsb = mr.FKinBody(M, Blist, thetalist)
     Vb = mr.se3ToVec(mr.MatrixLog6(np.dot(mr.TransInv(Tsb), T)))
     err_ang = np.linalg.norm([Vb[0], Vb[1], Vb[2]])
     err_lin = np.linalg.norm([Vb[3], Vb[4], Vb[5]])
     err = err_ang > eomg or err_lin > ev
 
+    # Store and print info
     theta_iterations = [thetalist]
     err_lin_iterations = [err_lin]
     err_ang_iterations = [err_ang]
@@ -87,12 +93,15 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
                     thetalist[j] += 2*np.pi
 
         i = i + 1
+
+        # Split out some of these calculations so we can print them
         Tsb = mr.FKinBody(M, Blist, thetalist)
         Vb = mr.se3ToVec(mr.MatrixLog6(np.dot(mr.TransInv(Tsb), T)))
         err_ang = np.linalg.norm([Vb[0], Vb[1], Vb[2]])
         err_lin = np.linalg.norm([Vb[3], Vb[4], Vb[5]])
         err = err_ang > eomg or err_lin > ev
 
+        # Store and print info
         theta_iterations.append(thetalist)
         err_lin_iterations.append(err_lin)
         err_ang_iterations.append(err_ang)
@@ -103,7 +112,6 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
         print(f'Angular error ||omega_b||:\t{err_ang}')
         print(f'Linear error ||v_b||:\t\t{err_lin}')
 
-    print('\n\n\n')
     theta_iterations = np.array(theta_iterations)
     
     # Round to 6 decimal places
@@ -112,6 +120,8 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
     # Output to CSV
     np.savetxt(filename,theta_iterations, delimiter=',',fmt='%10.6f')
 
+
+    # Return thetalist and success status, but also iteration data so it can be plotted
     return (thetalist, not err, theta_iterations,err_lin_iterations,err_ang_iterations)
 
 
@@ -159,37 +169,43 @@ folder = 'asst2_csvs'
 if folder != '':
     if not os.path.exists(folder):
         os.mkdir(folder)
+    folder += '/'
 
-short_file = folder + '/short_iterates.csv'
-long_file = folder + '/long_iterates.csv'
+short_file = folder + 'short_iterates.csv'
+long_file = folder + 'long_iterates.csv'
 
 # Initial guess for joint angles for short iteration
 theta0_short = np.array([1.763,0,-1.825,1.0,1.578,0])
 
+# Call function for short iteration
+print('\n\n\n--------------- Short Iterations:')
 [theta_sol_short, success_short, theta_iter_short, err_lin_iter_short, err_ang_iter_short] = \
     IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_short, tol_ang, tol_lin,short_file)
 
 if success_short:
-    print('Converged')
+    print('\n\nConverged')
 else:
-    print('Did not converge')
+    print('\n\nDid not converge')
 
 # Initial guess for joint angles for long iteration
 theta0_long = np.array([1.0,0,-1.0,0.6,0.5,-0.2])
 
+# Call function for long iteration
+print('\n\n\n--------------- Long Iterations:')
 [theta_sol_long, success_long, theta_iter_long, err_lin_iter_long, err_ang_iter_long] = \
     IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_long, tol_ang, tol_lin,long_file)
 
 if success_long:
-    print('Converged')
+    print('\n\nConverged')
 else:
-    print('Did not converge')
+    print('\n\nDid not converge')
 
 
 # Plots
 
 # End effector position
 # Generate end effector position data using FKinBody
+# and output thetalist iterations
 end_effector_x_short = []
 end_effector_y_short = []
 end_effector_z_short = []
