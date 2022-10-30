@@ -2,6 +2,7 @@
 
 import modern_robotics as mr
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 
 
@@ -62,6 +63,8 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
     err = err_ang > eomg or err_lin > ev
 
     theta_iterations = [thetalist]
+    err_lin_iterations = [err_lin]
+    err_ang_iterations = [err_ang]
     print(f'Iteration {i}:\n')
     print(f'Joint vector:\n{thetalist}\n')
     print(f'SE(3) end-effector config:\n{Tsb}\n')
@@ -91,6 +94,8 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
         err = err_ang > eomg or err_lin > ev
 
         theta_iterations.append(thetalist)
+        err_lin_iterations.append(err_lin)
+        err_ang_iterations.append(err_ang)
         print(f'\n\n\nIteration {i}:\n')
         print(f'Joint vector:\n{thetalist}\n')
         print(f'SE(3) end-effector config:\n{Tsb}\n')
@@ -107,7 +112,7 @@ def IKinBodyIterates(Blist, M, T, thetalist0, eomg, ev, filename):
     # Output to CSV
     np.savetxt(filename,theta_iterations, delimiter=',',fmt='%10.6f')
 
-    return (thetalist, not err)
+    return (thetalist, not err, theta_iterations,err_lin_iterations,err_ang_iterations)
 
 
 
@@ -161,7 +166,8 @@ long_file = folder + '/long_iterates.csv'
 # Initial guess for joint angles for short iteration
 theta0_short = np.array([1.763,0,-1.825,1.0,1.578,0])
 
-[theta_sol_short, success_short] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_short, tol_ang, tol_lin,short_file)
+[theta_sol_short, success_short, theta_iter_short, err_lin_iter_short, err_ang_iter_short] = \
+    IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_short, tol_ang, tol_lin,short_file)
 
 if success_short:
     print('Converged')
@@ -171,10 +177,39 @@ else:
 # Initial guess for joint angles for long iteration
 theta0_long = np.array([1.0,0,-1.0,0.6,0.5,-0.2])
 
-[theta_sol_long, success_long] = IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_long, tol_ang, tol_lin,long_file)
+[theta_sol_long, success_long, theta_iter_long, err_lin_iter_long, err_ang_iter_long] = \
+    IKinBodyIterates(Jb_Home, M, Tsb_desired, theta0_long, tol_ang, tol_lin,long_file)
 
 if success_long:
     print('Converged')
 else:
     print('Did not converge')
 
+
+# Plots
+
+
+fig_err_lin = plt.figure('Linear error over iterations')
+
+ax_err_lin = fig_err_lin.add_subplot()
+ax_err_lin.set_xlabel('Iteration')
+ax_err_lin.set_ylabel('Linear error (m)')
+ax_err_lin.set_title('Linear error over iterations')
+
+ax_err_lin.plot(np.arange(len(err_lin_iter_short)), err_lin_iter_short,label='short')
+ax_err_lin.plot(np.arange(len(err_lin_iter_long)), err_lin_iter_long,label='long')
+ax_err_lin.legend()
+
+fig_err_ang = plt.figure('Angular error over iterations')
+
+ax_err_ang = fig_err_ang.add_subplot()
+ax_err_ang.set_xlabel('Iteration')
+ax_err_ang.set_ylabel('Angular error (rad)')
+ax_err_ang.set_title('Angular error over iterations')
+
+ax_err_ang.plot(np.arange(len(err_ang_iter_short)), err_ang_iter_short,label='short')
+ax_err_ang.plot(np.arange(len(err_ang_iter_long)), err_ang_iter_long,label='long')
+ax_err_ang.legend()
+
+
+plt.show()
