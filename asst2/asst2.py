@@ -165,7 +165,7 @@ tol_ang = 0.001 # rad
 tol_lin = 0.0001 # m
 
 # File saving
-folder = 'asst2_csvs'
+folder = 'csv'
 if folder != '':
     if not os.path.exists(folder):
         os.mkdir(folder)
