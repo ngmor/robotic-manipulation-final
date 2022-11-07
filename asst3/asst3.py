@@ -39,8 +39,8 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
     # N = number of timesteps
     N = int(np.ceil(t / dt))
     
-    # TODO - update these to real values eventually
-    Ftip = np.array([0.]*n)
+    # init Ftip in case we don't calculate it
+    Ftip_ee = np.array([0.]*6)
 
     # init looping variables
     theta = np.copy(thetalist)
@@ -48,6 +48,11 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
     
     thetamat = np.zeros((N,n))
     dthetamat = np.zeros((N,n))
+
+    # calculate M for entire robot
+    M = np.eye(4,4)
+    for tf in Mlist:
+        M = np.matmul(M,tf)
 
     # iterate through all timesteps
     for i in range(0,N):
@@ -58,8 +63,37 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
         # calculate damping joint torques
         tau = -damping*dtheta
 
+        # only do spring calculate if stiffness is not 0
+        # to save calculation time
+        if stiffness > 0.00001:
+            
+            # calculate forward kinematics
+            Tsb = mr.FKinSpace(M,Slist,theta)
+
+            #Get end effector coordinates
+            ee_coord = Tsb[0:3,3]
+            
+            # Calculate spring vector in space frame
+            spring_vec = springPos - ee_coord
+
+            # Get spring length and unit vector
+            length = np.linalg.norm(spring_vec)
+            spring_unit_vec = spring_vec / length
+
+            # Calculate force of the tip in space frame
+            F_space = stiffness*(length - restLength)*spring_unit_vec
+
+            # Calculate moment about spatial frame caused by force
+            m_space = np.cross(ee_coord,F_space)
+
+            # Compose wrench in space frame
+            Ftip_space = np.hstack([m_space,F_space])
+            
+            # Transform wrench to body frame
+            Ftip_ee = np.matmul(mr.Adjoint(Tsb).T, Ftip_space)
+
         # calculate forward dynamics
-        ddtheta = mr.ForwardDynamics(theta,dtheta,tau,g,Ftip,Mlist,Glist,Slist)
+        ddtheta = mr.ForwardDynamics(theta,dtheta,tau,g,Ftip_ee,Mlist,Glist,Slist)
 
         # Euler integration
         [theta,dtheta] = mr.EulerStep(theta,dtheta,ddtheta,dt)
@@ -105,10 +139,8 @@ Slist = [[0,         0,         0,         0,        0,        0],
          [0,         0,     0.425,   0.81725,        0,  0.81725]]
 
 # Other inputs
-g = np.array([0,0,-9.81])
 thetalist = np.array([0.]*6)
 dthetalist = np.array([0.]*6)
-t = 5 # sec
 springPos = np.array([0,0,2])
 restLength = 0.0
 
@@ -121,7 +153,9 @@ run_part_1A = False
 filename = 'part1A.csv'
 
 # part specific inputs
+t = 5 # sec
 dt = 0.005 # sec
+g = np.array([0,0,-9.81])
 damping = 0.0
 stiffness = 0.0
 
@@ -138,7 +172,9 @@ run_part_1B = False
 filename = 'part1B.csv'
 
 # part specific inputs
+t = 5 # sec
 dt = 0.05 # sec
+g = np.array([0,0,-9.81])
 damping = 0.0
 stiffness = 0.0
 
@@ -155,7 +191,9 @@ run_part_2A = False
 filename = 'part2A.csv'
 
 # part specific inputs
+t = 5 # sec
 dt = 0.01 # sec
+g = np.array([0,0,-9.81])
 damping = 3.0
 stiffness = 0.0
 
@@ -167,16 +205,37 @@ if run_part_2A:
     generate_csv(folder,filename,thetamat)
 
 # Part 2B ---------------------------------------------------------------------------
-run_part_2B = True
+run_part_2B = False
 
 filename = 'part2B.csv'
 
 # part specific inputs
+t = 5 # sec
 dt = 0.01 # sec
+g = np.array([0,0,-9.81])
 damping = -0.025
 stiffness = 0.0
 
 if run_part_2B:
+    # function call
+    [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
+                                    damping,stiffness,springPos,restLength)
+
+    generate_csv(folder,filename,thetamat)
+
+# Part 3A ---------------------------------------------------------------------------
+run_part_3A = True
+
+filename = 'part3A.csv'
+
+# part specific inputs
+t = 10 # sec
+dt = 0.01 # sec
+g = np.array([0,0,0])
+damping = 0.0
+stiffness = 2.0
+
+if run_part_3A:
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
