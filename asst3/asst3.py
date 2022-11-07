@@ -150,7 +150,7 @@ if run_part_1B:
     generate_csv(folder,filename,thetamat)
 
 # Part 2A ---------------------------------------------------------------------------
-run_part_2A = True
+run_part_2A = False
 
 filename = 'part2A.csv'
 
@@ -160,6 +160,23 @@ damping = 3.0
 stiffness = 0.0
 
 if run_part_2A:
+    # function call
+    [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
+                                    damping,stiffness,springPos,restLength)
+
+    generate_csv(folder,filename,thetamat)
+
+# Part 2B ---------------------------------------------------------------------------
+run_part_2B = True
+
+filename = 'part2B.csv'
+
+# part specific inputs
+dt = 0.01 # sec
+damping = -0.025
+stiffness = 0.0
+
+if run_part_2B:
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
