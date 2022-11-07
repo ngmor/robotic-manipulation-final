@@ -40,7 +40,6 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
     N = int(np.ceil(t / dt))
     
     # TODO - update these to real values eventually
-    tau = np.array([0.]*n)
     Ftip = np.array([0.]*n)
 
     # init looping variables
@@ -55,6 +54,9 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
         # Store theta and dtheta values
         thetamat[i,:] = theta.copy()
         dthetamat[i,:] = dtheta.copy()
+
+        # calculate damping joint torques
+        tau = -damping*dtheta
 
         # calculate forward dynamics
         ddtheta = mr.ForwardDynamics(theta,dtheta,tau,g,Ftip,Mlist,Glist,Slist)
@@ -106,6 +108,9 @@ Slist = [[0,         0,         0,         0,        0,        0],
 g = np.array([0,0,-9.81])
 thetalist = np.array([0.]*6)
 dthetalist = np.array([0.]*6)
+t = 5 # sec
+springPos = np.array([0,0,2])
+restLength = 0.0
 
 # File generation
 folder = 'csv'
@@ -116,12 +121,9 @@ run_part_1A = False
 filename = 'part1A.csv'
 
 # part specific inputs
-t = 5 # sec
 dt = 0.005 # sec
 damping = 0.0
 stiffness = 0.0
-springPos = np.array([0,0,0])
-restLength = 0.0
 
 if run_part_1A:
     # function call
@@ -131,19 +133,33 @@ if run_part_1A:
     generate_csv(folder,filename,thetamat)
 
 # Part 1B ---------------------------------------------------------------------------
-run_part_1B = True
+run_part_1B = False
 
 filename = 'part1B.csv'
 
 # part specific inputs
-t = 5 # sec
 dt = 0.05 # sec
 damping = 0.0
 stiffness = 0.0
-springPos = np.array([0,0,0])
-restLength = 0.0
 
 if run_part_1B:
+    # function call
+    [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
+                                    damping,stiffness,springPos,restLength)
+
+    generate_csv(folder,filename,thetamat)
+
+# Part 2A ---------------------------------------------------------------------------
+run_part_2A = True
+
+filename = 'part2A.csv'
+
+# part specific inputs
+dt = 0.01 # sec
+damping = 3.0
+stiffness = 0.0
+
+if run_part_2A:
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
