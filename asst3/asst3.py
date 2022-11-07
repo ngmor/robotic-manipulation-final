@@ -79,9 +79,12 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
             # Get spring length and unit vector
             length = np.linalg.norm(spring_vec)
             spring_unit_vec = spring_vec / length
-
+            
             # Calculate force of the tip in space frame
-            F_space = stiffness*(length - restLength)*spring_unit_vec
+            # Negative sign because we need the force the end effector
+            # applies, and the positive sign is the force the spring applies
+            # to the end effector
+            F_space = -stiffness*(length - restLength)*spring_unit_vec
 
             # Calculate moment about spatial frame caused by force
             m_space = np.cross(ee_coord,F_space)
@@ -224,7 +227,7 @@ if run_part_2B:
     generate_csv(folder,filename,thetamat)
 
 # Part 3A ---------------------------------------------------------------------------
-run_part_3A = True
+run_part_3A = False
 
 filename = 'part3A.csv'
 
@@ -236,6 +239,25 @@ damping = 0.0
 stiffness = 2.0
 
 if run_part_3A:
+    # function call
+    [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
+                                    damping,stiffness,springPos,restLength)
+
+    generate_csv(folder,filename,thetamat)
+
+# Part 3B ---------------------------------------------------------------------------
+run_part_3B = True
+
+filename = 'part3B.csv'
+
+# part specific inputs
+t = 10 # sec
+dt = 0.01 # sec
+g = np.array([0,0,0])
+damping = 1.5
+stiffness = 2.0
+
+if run_part_3B:
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
