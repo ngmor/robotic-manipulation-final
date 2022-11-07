@@ -62,6 +62,12 @@ def Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
         # Euler integration
         [theta,dtheta] = mr.EulerStep(theta,dtheta,ddtheta,dt)
 
+        # Check for validity
+        if any(np.isnan(theta)) or any(np.isnan(dtheta)):
+            print(f'Error: invalid values in at {dt*i:.3f} sec.')
+            break
+
+
     return [thetamat,dthetamat]
 
 def generate_csv(folder,filename,thetamat):
@@ -105,7 +111,7 @@ dthetalist = np.array([0.]*6)
 folder = 'csv'
 
 # Part 1A ---------------------------------------------------------------------------
-run_part_1A = True
+run_part_1A = False
 
 filename = 'part1A.csv'
 
@@ -118,6 +124,26 @@ springPos = np.array([0,0,0])
 restLength = 0.0
 
 if run_part_1A:
+    # function call
+    [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
+                                    damping,stiffness,springPos,restLength)
+
+    generate_csv(folder,filename,thetamat)
+
+# Part 1B ---------------------------------------------------------------------------
+run_part_1B = True
+
+filename = 'part1B.csv'
+
+# part specific inputs
+t = 5 # sec
+dt = 0.05 # sec
+damping = 0.0
+stiffness = 0.0
+springPos = np.array([0,0,0])
+restLength = 0.0
+
+if run_part_1B:
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
