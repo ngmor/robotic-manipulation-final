@@ -163,11 +163,14 @@ damping = 0.0
 stiffness = 0.0
 
 if run_part_1A:
+    print('Start Part 1A')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 1A Complete')
 
 # Part 1B ---------------------------------------------------------------------------
 run_part_1B = True
@@ -182,11 +185,14 @@ damping = 0.0
 stiffness = 0.0
 
 if run_part_1B:
+    print('Start Part 1B')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 1B Complete')
 
 # Part 2A ---------------------------------------------------------------------------
 run_part_2A = True
@@ -201,11 +207,15 @@ damping = 3.0
 stiffness = 0.0
 
 if run_part_2A:
+    print('Start Part 2A')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 2A Complete')
+    
 
 # Part 2B ---------------------------------------------------------------------------
 run_part_2B = True
@@ -220,11 +230,14 @@ damping = -0.025
 stiffness = 0.0
 
 if run_part_2B:
+    print('Start Part 2B')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 2B Complete')
 
 # Part 3A ---------------------------------------------------------------------------
 run_part_3A = True
@@ -239,11 +252,14 @@ damping = 0.0
 stiffness = 2.0
 
 if run_part_3A:
+    print('Start Part 3A')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 3A Complete')
 
 # Part 3B ---------------------------------------------------------------------------
 run_part_3B = True
@@ -258,8 +274,11 @@ damping = 1.5
 stiffness = 2.0
 
 if run_part_3B:
+    print('Start Part 3B')
+
     # function call
     [thetamat,dthetamat] = Puppet(thetalist, dthetalist, g, Mlist, Slist,Glist,t,dt,
                                     damping,stiffness,springPos,restLength)
 
     generate_csv(folder,filename,thetamat)
+    print('Part 3B Complete')
