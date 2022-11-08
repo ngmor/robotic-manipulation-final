@@ -153,7 +153,7 @@ folder = 'csv'
 # Part 1A ---------------------------------------------------------------------------
 run_part_1A = True
 
-filename = 'part1A.csv'
+filename = 'part1a.csv'
 
 # part specific inputs
 t = 5 # sec
@@ -175,7 +175,7 @@ if run_part_1A:
 # Part 1B ---------------------------------------------------------------------------
 run_part_1B = True
 
-filename = 'part1B.csv'
+filename = 'part1b.csv'
 
 # part specific inputs
 t = 5 # sec
@@ -197,7 +197,7 @@ if run_part_1B:
 # Part 2A ---------------------------------------------------------------------------
 run_part_2A = True
 
-filename = 'part2A.csv'
+filename = 'part2a.csv'
 
 # part specific inputs
 t = 5 # sec
@@ -220,7 +220,7 @@ if run_part_2A:
 # Part 2B ---------------------------------------------------------------------------
 run_part_2B = True
 
-filename = 'part2B.csv'
+filename = 'part2b.csv'
 
 # part specific inputs
 t = 5 # sec
@@ -242,7 +242,7 @@ if run_part_2B:
 # Part 3A ---------------------------------------------------------------------------
 run_part_3A = True
 
-filename = 'part3A.csv'
+filename = 'part3a.csv'
 
 # part specific inputs
 t = 10 # sec
@@ -264,7 +264,7 @@ if run_part_3A:
 # Part 3B ---------------------------------------------------------------------------
 run_part_3B = True
 
-filename = 'part3B.csv'
+filename = 'part3b.csv'
 
 # part specific inputs
 t = 10 # sec
