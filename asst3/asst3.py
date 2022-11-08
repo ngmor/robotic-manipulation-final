@@ -151,13 +151,13 @@ restLength = 0.0
 folder = 'csv'
 
 # Part 1A ---------------------------------------------------------------------------
-run_part_1A = False
+run_part_1A = True
 
 filename = 'part1A.csv'
 
 # part specific inputs
 t = 5 # sec
-dt = 0.005 # sec
+dt = 0.001 # sec
 g = np.array([0,0,-9.81])
 damping = 0.0
 stiffness = 0.0
@@ -170,7 +170,7 @@ if run_part_1A:
     generate_csv(folder,filename,thetamat)
 
 # Part 1B ---------------------------------------------------------------------------
-run_part_1B = False
+run_part_1B = True
 
 filename = 'part1B.csv'
 
@@ -189,7 +189,7 @@ if run_part_1B:
     generate_csv(folder,filename,thetamat)
 
 # Part 2A ---------------------------------------------------------------------------
-run_part_2A = False
+run_part_2A = True
 
 filename = 'part2A.csv'
 
@@ -208,7 +208,7 @@ if run_part_2A:
     generate_csv(folder,filename,thetamat)
 
 # Part 2B ---------------------------------------------------------------------------
-run_part_2B = False
+run_part_2B = True
 
 filename = 'part2B.csv'
 
@@ -227,7 +227,7 @@ if run_part_2B:
     generate_csv(folder,filename,thetamat)
 
 # Part 3A ---------------------------------------------------------------------------
-run_part_3A = False
+run_part_3A = True
 
 filename = 'part3A.csv'
 
