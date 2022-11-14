@@ -35,11 +35,12 @@ Tsc_fin = np.array([
 ])
 
 # grasp
-grasp_angle = 3*np.pi/4
+grasp_angle = 3*np.pi/4 # rad
+grasp_height = 0.025 # m
 Tce_grasp = np.array([
     [np.cos(grasp_angle),0,np.sin(grasp_angle),0],
     [0,1,0,0],
-    [-np.sin(grasp_angle),0,np.cos(grasp_angle),0],
+    [-np.sin(grasp_angle),0,np.cos(grasp_angle),0.025],
     [0,0,0,1]
 ])
 
@@ -89,7 +90,8 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k):
 
     # Segment 1:
     # Gripper to pick standoff configuration above block
-    seg1 = mr.ScrewTrajectory(Tse_ini, Tsc_ini @ Tce_standoff, (N1 - 1)*dt, N1, method)
+    Tse_pick_standoff = Tsc_ini @ Tce_standoff
+    seg1 = mr.ScrewTrajectory(Tse_ini, Tse_pick_standoff, (N1 - 1)*dt, N1, method)
 
     for i in range(len(seg1)):
         traj[offset + i] = components_to_csv_line(seg1[i],0)
@@ -98,25 +100,63 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k):
 
     # Segment 2:
     # Gripper down to pick position
+    Tse_pick = Tsc_ini @ Tce_grasp
+    seg2 = mr.CartesianTrajectory(Tse_pick_standoff, Tse_pick, (N2 - 1)*dt, N2, method)
+
+    for i in range(len(seg2)):
+        traj[offset + i] = components_to_csv_line(seg2[i],0)
+    
+    offset += i + 1
 
     # Segment 3:
     # Close gripper
+    for i in range(N3):
+        traj[offset + i] = components_to_csv_line(Tse_pick,1)
+
+    offset += i + 1
 
     # Segment 4:
     # Move gripper back up to pick standoff
+    seg4 = mr.CartesianTrajectory(Tse_pick, Tse_pick_standoff, (N4 - 1)*dt, N4, method)
+
+    for i in range(len(seg4)):
+        traj[offset + i] = components_to_csv_line(seg4[i],1)
+    
+    offset += i + 1
 
     # Segment 5:
     # Move gripper to place standoff
+    Tse_place_standoff = Tsc_fin @ Tce_standoff
+    seg5 = mr.ScrewTrajectory(Tse_pick_standoff, Tse_place_standoff, (N5 - 1)*dt, N5, method)
+
+    for i in range(len(seg5)):
+        traj[offset + i] = components_to_csv_line(seg5[i],1)
+    
+    offset += i + 1
 
     # Segment 6:
     # Gripper down to place position
+    Tse_place = Tsc_fin @ Tce_grasp
+    seg6 = mr.CartesianTrajectory(Tse_place_standoff, Tse_place, (N6 - 1)*dt, N6, method)
+
+    for i in range(len(seg6)):
+        traj[offset + i] = components_to_csv_line(seg6[i],1)
+    
+    offset += i + 1
 
     # Segment 7:
     # Open gripper
+    for i in range(N7):
+        traj[offset + i] = components_to_csv_line(Tse_place,0)
+
+    offset += i + 1
 
     # Segment 8:
     # Move gripper back up to place standoff
+    seg8 = mr.CartesianTrajectory(Tse_place, Tse_place_standoff, (N8 - 1)*dt, N8, method)
 
+    for i in range(len(seg8)):
+        traj[offset + i] = components_to_csv_line(seg8[i],0)
 
     return traj
 
