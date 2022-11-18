@@ -97,7 +97,6 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k):
         traj[offset + i] = components_to_csv_line(seg1[i],0)
     
     offset += i + 1
-
     # Segment 2:
     # Gripper down to pick position
     Tse_pick = Tsc_ini @ Tce_grasp
