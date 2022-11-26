@@ -7,7 +7,7 @@
 
 import modern_robotics as mr
 import numpy as np
-from common import calculate_Tse, get_full_Jacobian, generate_csv
+from common import calculate_Tse, get_full_Jacobian, ZERO_TOL
 
 def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     """
@@ -49,6 +49,23 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     
     return V, Xerr_integral_sum
 
+def get_velocities_from_twist(twist_cmd,config):
+    """
+    Translate twist command for end effector into wheel / joint velocities
+
+    Args:
+        twist_cmd (np-array, 6-vector): Commanded end-effector twist
+        config (np-array, 12-vector): current config of robot, in this order:
+            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4]
+
+    Returns:
+        velocity_cmd (np-array, 9-vector): Commanded wheel/joint velocities:
+            [W1d, W2d, W3d, W4d, J1d, J2d, J3d, J4d, J5d]
+    """
+
+    Je = get_full_Jacobian(config)
+
+    return np.linalg.pinv(Je,rcond=ZERO_TOL) @ twist_cmd
 
 if __name__ == "__main__":
 
@@ -71,12 +88,13 @@ if __name__ == "__main__":
         [0,0,0,1]
     ])
 
-    kp = 0
+    kp = 1
     ki = 0
     dt = 0.01
     Xerr_integral_sum = np.array([0.]*6)
 
     [V_cmd, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum)
 
-    j = get_full_Jacobian(current_position)
-    generate_csv('test.csv',j,folder='csv')
+    velocity_cmd = get_velocities_from_twist(V_cmd,current_position)
+
+    # TODO - implement self collisions at this step?
