@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
+# To run the example code and generate a trajectory CSV, simply run this python file.
+# On a typical Linux installation, from the directory the code is in:
+#
+# python3 traj_gen.py
+
 import modern_robotics as mr
 import numpy as np
-import os
+from common import generate_csv
 
 def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
                         dt,total_time,gripper_actuate_time,standoff_time):
@@ -174,25 +179,8 @@ def components_to_csv_line(Tse, gripper_command):
     ])
 
 
-def generate_csv(filename,matrix,folder=''):
-    """
-    Generate csv from input matrix.
-
-    Args:
-        filename (str): name of file to output
-        matrix (nxn np.array): Matrix to output to CSV
-        folder (str, optional): Folder to place the file into. Defaults to ''.
-    """    
-    if folder != '':
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-        folder += '/'
-
-    filepath = folder + filename
-    np.savetxt(filepath,matrix,delimiter=',',fmt='%10.6f')
-
-
 if __name__ == "__main__":
+    # Example code for running the trajectory generation function
 
     # initial end effector transform
     Tse_ini = np.array([
@@ -256,4 +244,4 @@ if __name__ == "__main__":
                                dt,total_time,gripper_actuate_time,standoff_time)
 
     # Save to CSV
-    generate_csv('traj.csv',traj,folder='traj')
+    generate_csv('traj.csv',traj,folder='csv')
