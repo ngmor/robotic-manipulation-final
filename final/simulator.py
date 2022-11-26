@@ -2,7 +2,7 @@
 
 import modern_robotics as mr
 import numpy as np
-from common import chassis_H0, generate_csv
+from common import CHASSIS_H0, generate_csv, ZERO_TOL
 
 def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
     """
@@ -54,13 +54,13 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
     # ODOMETRY
     # Get body twist and extract components
     wheel_vel = joint_and_wheel_vel[5:9]
-    body_twist = np.linalg.pinv(chassis_H0) @ wheel_vel
+    body_twist = np.linalg.pinv(CHASSIS_H0) @ wheel_vel
     omega_bz = body_twist[0]
     v_bx = body_twist[1]
     v_by = body_twist[2]
 
     # Get change in body frame state in unit time
-    if np.isclose(omega_bz,0):
+    if np.isclose(omega_bz,0,atol=ZERO_TOL):
         delta_q_b = np.array([
             0,
             v_bx,
