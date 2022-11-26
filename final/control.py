@@ -9,7 +9,7 @@ import modern_robotics as mr
 import numpy as np
 from common import youbot_FK
 
-def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt):
+def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     """
     Determine commanded end-effector twist by comparing current configuration with reference trajectory.
 
@@ -20,9 +20,34 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt):
         kp (float): proportional gain constant
         ki (float): integral gain constant
         dt (float): timestep (sec)
-    """    
+        Xerr_integral_sum: (np-array, 6-vector): running count of summed integral error
+    Returns:
+        V: (np-array, 6-vector): Commanded end-effector twist
+        Xerr_integral_sum: (np-array, 6-vector): updated summed integral error
+    """
     
-    pass
+    # Calculate feedforward reference twist
+    Vd_mat = mr.MatrixLog6(np.linalg.inv(Tse_des) @ Tse_des_next) / dt
+    Vd = mr.se3ToVec(Vd_mat)
+    
+    XinvXdes = np.linalg.inv(Tse_act) @ Tse_des
+    
+    # Calculate error twist
+    Xerr_mat = mr.MatrixLog6(XinvXdes)
+    Xerr = mr.se3ToVec(Xerr_mat)
+
+    # Add to integral sum
+    Xerr_integral_sum += Xerr
+
+    # Generate gain matrices
+    I6 = np.eye(len(Xerr),len(Xerr))
+    Kp = kp * I6
+    Ki = ki * I6 
+    
+    # Calculate commanded end effector twist
+    V = mr.Adjoint(XinvXdes) @ Vd + Kp @ Xerr + Ki @ Xerr_integral_sum
+    
+    return V, Xerr_integral_sum
 
 
 if __name__ == "__main__":
@@ -49,5 +74,6 @@ if __name__ == "__main__":
     kp = 0
     ki = 0
     dt = 0.01
+    Xerr_integral_sum = np.array([0.]*6)
 
-    FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt)
+    [V_cmd, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum)
