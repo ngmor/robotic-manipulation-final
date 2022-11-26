@@ -69,4 +69,4 @@ if __name__ == "__main__":
                                dt,total_time,gripper_actuate_time,standoff_time)
 
     # Save to CSV
-    generate_csv('traj.csv',traj,folder='traj')
+    generate_csv('traj.csv',traj,folder='csv')
