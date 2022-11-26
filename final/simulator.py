@@ -140,5 +140,25 @@ if __name__ == "__main__":
 
     generate_csv('simulate_rotate.csv',position_list,folder='csv')
 
+    position_list = np.zeros((N,13))
+    next_positions = np.copy(positions)
+    velocities[5:9] = [-10,10,-10,10]
+    max_velocities[5:9] = [5,5,5,5]
+    next_velocities = np.copy(velocities)
+    for i in range(N):
+        position_list[i,0:12] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+
+    generate_csv('simulate_limited.csv',position_list,folder='csv')
+
+    position_list = np.zeros((N,13))
+    next_positions = np.copy(positions)
+    velocities[0:9] = [1,1,1,1,1,0,0,0,0]
+    next_velocities = np.copy(velocities)
+    for i in range(N):
+        position_list[i,0:12] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+
+    generate_csv('simulate_arm.csv',position_list,folder='csv')
 
     
