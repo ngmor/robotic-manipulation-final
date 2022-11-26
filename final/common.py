@@ -90,8 +90,13 @@ Jarm_home = np.array([
     [0, 0, 1, 0,0,0],
 ]).T
 
-def calculate_Tsb(phi,x,y):
+def calculate_Tsb(config):
     """TODO"""
+
+    phi = config[0]
+    x = config[1]
+    y = config[2]
+
     return np.array([
         [np.cos(phi), -np.sin(phi), 0, x],
         [np.sin(phi), np.cos(phi), 0, y],
@@ -99,22 +104,54 @@ def calculate_Tsb(phi,x,y):
         [0,0,0,1],
     ])
 
-def calculate_Ts0(phi,x,y):
+def calculate_Ts0(config):
     """TODO"""
-    Tsb = calculate_Tsb(phi,x,y)
+    Tsb = calculate_Tsb(config)
     return Tsb @ Tb0
 
-def youbot_FK(current_config):
+def calculate_T0e(config):
     """TODO"""
-    
-    phi = current_config[0]
-    x = current_config[1]
-    y = current_config[2]
-    joints = current_config[3:9]
+    joints = config[3:9]
+    return mr.FKinBody(M0e,Jarm_home,joints)
 
-    Ts0 = calculate_Ts0(phi,x,y)
-    T0e = mr.FKinBody(M0e,Jarm_home,joints)
+def calculate_Tse(config):
+    """TODO"""
+
+    Ts0 = calculate_Ts0(config)
+    T0e = calculate_T0e(config)
 
     # Tse
     return Ts0 @ T0e
+
+def get_arm_Jacobian(config):
+    """TODO"""
+
+    joints = config[3:9]
+
+    return mr.JacobianBody(Jarm_home,joints)
+
+def get_chassis_Jacobian(config):
+    """TODO"""
+
+
+
+    F = np.linalg.pinv(CHASSIS_H0)
+    m = F.shape[1]
+    Zm = np.array([0]*m)
+    
+    F6 = np.vstack((Zm,Zm,F,Zm))
+    T0e = calculate_T0e(config)
+
+    return mr.Adjoint(np.linalg.inv(T0e) @ np.linalg.inv(Tb0)) @ F6
+
+def get_full_Jacobian(config):
+    """TODO"""
+
+    Jarm = get_arm_Jacobian(config)
+    Jchassis = get_chassis_Jacobian(config)
+
+    return np.hstack((Jchassis, Jarm))
+
+
+
 

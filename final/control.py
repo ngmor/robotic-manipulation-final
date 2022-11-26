@@ -7,7 +7,7 @@
 
 import modern_robotics as mr
 import numpy as np
-from common import youbot_FK
+from common import calculate_Tse, get_full_Jacobian, generate_csv
 
 def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     """
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     current_position = np.array([0,0,0,0,0,0.2,-1.6,0])
 
-    Tse_act = youbot_FK(current_position)
+    Tse_act = calculate_Tse(current_position)
 
     # Testing code
     Tse_des = np.array([
@@ -77,3 +77,6 @@ if __name__ == "__main__":
     Xerr_integral_sum = np.array([0.]*6)
 
     [V_cmd, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum)
+
+    j = get_full_Jacobian(current_position)
+    generate_csv('test.csv',j,folder='csv')
