@@ -27,7 +27,8 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
         standoff_time (float): time to move from the standoff position to the grasp position in seconds
 
     Returns:
-        n x 13 np array: Generated trajectory
+        traj_tf (list of n elements): Generated trajectory as a series of [SE3 transformation, gripper_control] entries
+        traj_csv (np-array, nx13): Generated trajectory in as matrix of csv lines
     """    
 
     # get total number of timesteps
@@ -45,8 +46,9 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     N1 = int(np.ceil((N - (N2 + N3 + N4 + N6 + N7 + N8)) / 2.))
     N5 = N - (N1 + N2 + N3 + N4 + N6 + N7 + N8)
 
-    # Init trajectory matrix to hold output of all segments
-    traj = np.zeros((N,13))
+    # Init trajectory arrays to hold output of all segments
+    traj_csv = np.zeros((N,13)) # CSV lines
+    traj_tf = [] # transformation matrices and gripper control
     offset = 0
 
     # Segment 1:
@@ -58,8 +60,10 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     seg1 = mr.ScrewTrajectory(Tse_ini, Tse_pick_standoff, (N1 - 1)*dt, N1, method)
 
     # Store in trajectory matrix
+    gripper_control = 0
     for i in range(len(seg1)):
-        traj[offset + i] = components_to_csv_line(seg1[i],0)
+        traj_csv[offset + i] = components_to_csv_line(seg1[i],gripper_control)
+        traj_tf.append([seg1[i],gripper_control])
     
     offset += i + 1
 
@@ -73,15 +77,18 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
 
     # Store in trajectory matrix
     for i in range(len(seg2)):
-        traj[offset + i] = components_to_csv_line(seg2[i],0)
+        traj_csv[offset + i] = components_to_csv_line(seg2[i],gripper_control)
+        traj_tf.append([seg2[i],gripper_control])
     
     offset += i + 1
 
     # Segment 3:
     # Close gripper
     # keep current end effector position transform, just command the gripper close with a "1"
+    gripper_control = 1
     for i in range(N3):
-        traj[offset + i] = components_to_csv_line(Tse_pick,1)
+        traj_csv[offset + i] = components_to_csv_line(Tse_pick,gripper_control)
+        traj_tf.append([Tse_pick,gripper_control])
 
     offset += i + 1
 
@@ -93,7 +100,8 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
 
     # Store in trajectory matrix
     for i in range(len(seg4)):
-        traj[offset + i] = components_to_csv_line(seg4[i],1)
+        traj_csv[offset + i] = components_to_csv_line(seg4[i],gripper_control)
+        traj_tf.append([seg4[i],gripper_control])
     
     offset += i + 1
 
@@ -108,7 +116,8 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
 
     # Store in trajectory matrix
     for i in range(len(seg5)):
-        traj[offset + i] = components_to_csv_line(seg5[i],1)
+        traj_csv[offset + i] = components_to_csv_line(seg5[i],gripper_control)
+        traj_tf.append([seg5[i],gripper_control])
     
     offset += i + 1
 
@@ -123,15 +132,18 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
 
     # Store in trajectory matrix
     for i in range(len(seg6)):
-        traj[offset + i] = components_to_csv_line(seg6[i],1)
+        traj_csv[offset + i] = components_to_csv_line(seg6[i],gripper_control)
+        traj_tf.append([seg6[i],gripper_control])
     
     offset += i + 1
 
     # Segment 7:
     # Open gripper
     # keep current end effector position transform, just command the gripper open with a "0"
+    gripper_control = 0
     for i in range(N7):
-        traj[offset + i] = components_to_csv_line(Tse_place,0)
+        traj_csv[offset + i] = components_to_csv_line(Tse_place,gripper_control)
+        traj_tf.append([Tse_place,gripper_control])
 
     offset += i + 1
 
@@ -143,10 +155,11 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
 
     # Store in trajectory matrix
     for i in range(len(seg8)):
-        traj[offset + i] = components_to_csv_line(seg8[i],0)
+        traj_csv[offset + i] = components_to_csv_line(seg8[i],gripper_control)
+        traj_tf.append([seg8[i],gripper_control])
 
     # Return trajectory matrix
-    return traj
+    return traj_tf, traj_csv
 
 
 def components_to_csv_line(Tse, gripper_command):
@@ -240,8 +253,8 @@ if __name__ == "__main__":
     k = 1
 
     # generate trajectory
-    traj = TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
-                               dt,total_time,gripper_actuate_time,standoff_time)
+    [traj_tf, traj_csv] = TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
+                                              dt,total_time,gripper_actuate_time,standoff_time)
 
     # Save to CSV
-    generate_csv('traj.csv',traj,folder='csv')
+    generate_csv('traj.csv',traj_csv,folder='csv')
