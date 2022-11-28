@@ -111,7 +111,7 @@ def calculate_Ts0(config):
 
 def calculate_T0e(config):
     """TODO"""
-    joints = config[3:9]
+    joints = config[3:8]
     return mr.FKinBody(M0e,Jarm_home,joints)
 
 def calculate_Tse(config):
@@ -126,7 +126,7 @@ def calculate_Tse(config):
 def get_arm_Jacobian(config):
     """TODO"""
 
-    joints = config[3:9]
+    joints = config[3:8]
 
     return mr.JacobianBody(Jarm_home,joints)
 
