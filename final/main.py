@@ -9,7 +9,7 @@ from simulator import NextState
 from control import FeedbackControl, get_velocities_from_twist
 
 def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
-                    total_time=20, gripper_actuate_time=0.625, standoff_time=1.5, k=1):
+                    total_time=25, gripper_actuate_time=0.625, standoff_time=1.5, k=1):
     """TODO"""
 
     # grasp transform
@@ -40,14 +40,14 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # Joint velocity limits
     # TODO - make these inputs?
     # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
-    velocity_limits = np.array([1000000000]*9)
+    # velocity_limits = np.array([1000000000]*9)
     # TODO - use real values
-    # velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
+    velocity_limits = np.array([20,20,20,20,1,1,1,1,1])
 
     # Gain constants
     # TODO
-    kp = 0.
-    ki = 0.
+    kp = 1.
+    ki = 0.5
 
     # Calculate reference trajectory
     [ref_traj_tf, ref_traj_csv] = TrajectoryGenerator(Tse_des_ini, Tsc_ini, Tsc_fin, 
@@ -121,18 +121,20 @@ if __name__ == "__main__":
 
     # initial actual end effector transform
     # TODO - add error
-    # config_ini = np.array([np.pi/6,0,0,0,0,0.2,-1.6,0,0,0,0,0,0])
-    config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
+    config_ini = np.array([np.pi/6,-0.75,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])
+    # config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
 
 
     # TODO - change these into a function to generate from x,y,theta
     # May also need to account for the height of the cube (see wiki)
 
     # initial cube transform
-    Tsc_ini = calculate_Tsc(1.,0.,0.)
+    # Tsc_ini = calculate_Tsc(1.,0.,0.)
+    Tsc_ini = calculate_Tsc(1.5,0.5,np.pi/3)
 
     # final cube transform
-    Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+    # Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+    Tsc_fin = calculate_Tsc(0.25,-1.5,-np.pi/3.)
 
 
     # define timing information

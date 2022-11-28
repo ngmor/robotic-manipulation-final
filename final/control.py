@@ -45,6 +45,7 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     Ki = ki * I6 
     
     # Calculate commanded end effector twist
+    # TODO doesn't this use feedback (i.e. the current position) for the feedforward control?
     V = mr.Adjoint(XinvXdes) @ Vd + Kp @ Xerr + Ki @ Xerr_integral_sum
     
     return V, Xerr_integral_sum
