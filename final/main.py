@@ -3,7 +3,7 @@
 import modern_robotics as mr
 import numpy as np
 from traj_gen import TrajectoryGenerator
-from common import generate_csv, calculate_Tse
+from common import generate_csv, calculate_Tse, calculate_Tsc
 from traj_gen import TrajectoryGenerator
 from simulator import NextState
 from control import FeedbackControl, get_velocities_from_twist
@@ -16,7 +16,7 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # Rotated around the y axis from the cube position by the specified angle
     # Translated in the positive z axis from the cube position by the specified height
     grasp_angle = 3*np.pi/4 # rad
-    grasp_height = 0.025 # m
+    grasp_height = 0.0 # m
     Tce_grasp = np.array([
         [np.cos(grasp_angle),0,np.sin(grasp_angle),0],
         [0,1,0,0],
@@ -40,19 +40,21 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # Joint velocity limits
     # TODO - make these inputs?
     # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
-    # velocity_limits = np.array([1000]*9)
+    velocity_limits = np.array([1000000000]*9)
     # TODO - use real values
-    velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
+    # velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
 
     # Gain constants
     # TODO
-    kp = 1
-    ki = 0.005
+    kp = 0.
+    ki = 0.
 
     # Calculate reference trajectory
     [ref_traj_tf, ref_traj_csv] = TrajectoryGenerator(Tse_des_ini, Tsc_ini, Tsc_fin, 
                                                       Tce_grasp, Tce_standoff, k, dt, total_time,
                                                       gripper_actuate_time, standoff_time)
+
+    generate_csv('traj.csv',ref_traj_csv,folder='csv')
 
     # Init configuration trajectory
     config_traj_csv = np.zeros(ref_traj_csv.shape)
@@ -119,26 +121,19 @@ if __name__ == "__main__":
 
     # initial actual end effector transform
     # TODO - add error
-    config_ini = np.array([0,0,0,0,0,0.2,-1.6,0,0,0,0,0,0])
+    # config_ini = np.array([np.pi/6,0,0,0,0,0.2,-1.6,0,0,0,0,0,0])
+    config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
+
 
     # TODO - change these into a function to generate from x,y,theta
     # May also need to account for the height of the cube (see wiki)
 
     # initial cube transform
-    Tsc_ini = np.array([
-        [1,0,0,1],
-        [0,1,0,0],
-        [0,0,1,0],
-        [0,0,0,1]
-    ])
+    Tsc_ini = calculate_Tsc(1.,0.,0.)
 
     # final cube transform
-    Tsc_fin = np.array([
-        [0,1,0,0],
-        [-1,0,0,-1],
-        [0,0,1,0],
-        [0,0,0,1]
-    ])
+    Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+
 
     # define timing information
     dt = 0.01 # sec

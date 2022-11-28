@@ -37,7 +37,7 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     Xerr = mr.se3ToVec(Xerr_mat)
 
     # Add to integral sum
-    Xerr_integral_sum += Xerr
+    Xerr_integral_sum += Xerr * dt
 
     # Generate gain matrices
     I6 = np.eye(len(Xerr),len(Xerr))

@@ -123,6 +123,15 @@ def calculate_Tse(config):
     # Tse
     return Ts0 @ T0e
 
+def calculate_Tsc(x,y,theta):
+    """TODO"""
+    return np.array([
+        [np.cos(theta),-np.sin(theta),0,x],
+        [np.sin(theta),np.cos(theta),0,y],
+        [0,0,1,0.025],
+        [0,0,0,1],
+    ])
+
 def get_arm_Jacobian(config):
     """TODO"""
 
