@@ -40,7 +40,7 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # Joint position limits
     joint_limits = np.array([
         [-np.inf,np.inf], # J1
-        [-1.1, 1.29], # J2
+        [-1.3, 1.29], # J2
         [-np.pi/2, np.pi/2], # J3
         [-np.pi/2, np.pi/2], # J4
         [-np.pi/2, ZERO_TOL] # J5
@@ -55,8 +55,8 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     velocity_limits = np.array([20,20,20,20,2,2,2,2,2])
 
     # Gain constants
-    kp = 1.
-    ki = 0.5
+    kp = 2.
+    ki = 1.
 
     # Calculate reference trajectory
     print('Begin reference trajectory generation.')
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     # define timing information
     dt = 0.01 # sec
-    total_time = 25 # sec
+    total_time = 20 # sec
     k = 2
 
     simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time, k=k)
