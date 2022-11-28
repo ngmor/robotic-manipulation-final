@@ -161,6 +161,11 @@ def get_full_Jacobian(config):
 
     return np.hstack((Jchassis, Jarm))
 
+def test_joint_limits(config, joint_limits):
+    """TODO"""
+    joints = config[3:8]
 
+    lower_limits = joints < joint_limits[0,:]
+    upper_limits = joints > joint_limits[1,:]
 
-
+    return np.logical_or(lower_limits,upper_limits)

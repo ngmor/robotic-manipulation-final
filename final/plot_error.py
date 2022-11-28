@@ -11,7 +11,6 @@ error_data = np.genfromtxt(filename, delimiter=',').T
 dt = 0.01
 
 times = np.linspace(0.,error_data.shape[1]*dt,error_data.shape[1])
-print(times)
 
 # Get error values
 omega_x = error_data[0,:]

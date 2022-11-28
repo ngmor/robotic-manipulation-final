@@ -3,7 +3,7 @@
 import modern_robotics as mr
 import numpy as np
 from traj_gen import TrajectoryGenerator
-from common import generate_csv, calculate_Tse, calculate_Tsc
+from common import generate_csv, calculate_Tse, calculate_Tsc, test_joint_limits, ZERO_TOL
 from traj_gen import TrajectoryGenerator
 from simulator import NextState
 from control import FeedbackControl, get_velocities_from_twist
@@ -37,15 +37,24 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # calculate cube to standoff position transformation
     Tce_standoff = Tgrasp_standoff @ Tce_grasp
 
+    # Joint position limits
+    joint_limits = np.array([
+        [-np.inf,np.inf], # J1
+        [-1.1, 1.29], # J2
+        [-np.pi/2, np.pi/2], # J3
+        [-np.pi/2, np.pi/2], # J4
+        [-np.pi/2, ZERO_TOL] # J5
+    ]).T
+
     # Joint velocity limits
     # TODO - make these inputs?
     # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
     # velocity_limits = np.array([1000000000]*9)
     # TODO - use real values
-    velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
+    # velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
+    velocity_limits = np.array([20,20,20,20,2,2,2,2,2])
 
     # Gain constants
-    # TODO
     kp = 1.
     ki = 0.5
 
@@ -88,20 +97,42 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
         # Get next desired Tse from reference trajectory
         Tse_des_next = ref_traj_tf[i+1][0]
 
+        valid_joints = False
+        invalid_joint = np.array([False]*5)
+        counter = 0
 
-        # Calculate control law
-        [twist_cmd, Xerr, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,
-                                                               kp,ki,dt,k,Xerr_integral_sum)
+        while not valid_joints:
+            # Calculate control law
+            [twist_cmd, Xerr, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,
+                                                                kp,ki,dt,k,Xerr_integral_sum)
 
-        # Convert commanded twist to commanded velocities
-        velocity_cmd = get_velocities_from_twist(twist_cmd, current_config)
+            # Convert commanded twist to commanded velocities
+            velocity_cmd = get_velocities_from_twist(twist_cmd, current_config, invalid_joint)
 
-        # Simulate next state
-        [next_config, next_velocities] = NextState(current_config, velocity_cmd, 
-                                                      velocity_limits, dt, k)
+            # Simulate next state
+            [next_config, next_velocities] = NextState(current_config, velocity_cmd, 
+                                                        velocity_limits, dt, k)
 
-        # Add gripper control
-        next_config[-1] = gripper_control
+            # Add gripper control
+            next_config[-1] = gripper_control
+
+            # Test if any joints violate joint limits
+            joint_test = test_joint_limits(next_config, joint_limits)
+            
+
+            # If any joints are invalid, retry
+            valid_joints = not np.any(joint_test)
+
+            # Mark invalid joints for next loop
+            invalid_joint = np.logical_or(invalid_joint, joint_test)
+
+            counter += 1
+            if counter > 100:
+                print('Error, could not resolve without violating joint limit.')
+                print(invalid_joint)
+                print(i)
+                # TODO
+                exit()
         
         # store state every kth timestep
         if (i % k) == 0:
@@ -140,12 +171,12 @@ if __name__ == "__main__":
     # config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
 
     # initial cube transform
-    Tsc_ini = calculate_Tsc(1.,0.,0.)
-    # Tsc_ini = calculate_Tsc(1.5,0.5,np.pi/3)
+    # Tsc_ini = calculate_Tsc(1.,0.,0.)
+    Tsc_ini = calculate_Tsc(1.0,0.5,1.0)
 
     # final cube transform
-    Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
-    # Tsc_fin = calculate_Tsc(0.25,-1.5,-np.pi/3.)
+    # Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+    Tsc_fin = calculate_Tsc(0.25,-1.5,-1.0)
 
 
     # define timing information
@@ -154,5 +185,3 @@ if __name__ == "__main__":
     k = 2
 
     simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time, k=k)
-
-    # TODO logfile/feedback

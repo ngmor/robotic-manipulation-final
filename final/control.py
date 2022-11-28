@@ -7,7 +7,7 @@
 
 import modern_robotics as mr
 import numpy as np
-from common import calculate_Tse, get_full_Jacobian, ZERO_TOL
+from common import calculate_Tse, get_full_Jacobian, ZERO_TOL, generate_csv
 
 def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,k,Xerr_integral_sum):
     """
@@ -54,7 +54,7 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,k,Xerr_integral_sum):
     
     return V, Xerr, Xerr_integral_sum
 
-def get_velocities_from_twist(twist_cmd,config):
+def get_velocities_from_twist(twist_cmd, config, invalid_joints):
     """
     Translate twist command for end effector into wheel / joint velocities
 
@@ -62,6 +62,7 @@ def get_velocities_from_twist(twist_cmd,config):
         twist_cmd (np-array, 6-vector): Commanded end-effector twist
         config (np-array, 12-vector): current config of robot, in this order:
             [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4]
+        invalid_joints (TODO)
 
     Returns:
         velocity_cmd (np-array, 9-vector): Commanded wheel/joint velocities:
@@ -69,6 +70,11 @@ def get_velocities_from_twist(twist_cmd,config):
     """
 
     Je = get_full_Jacobian(config)
+    
+    # If the input array indicates not to use the joint, clear it in the jacobian
+    for i,joint in enumerate(invalid_joints):
+        if joint:
+            Je[:,i+4] = np.zeros(Je[:,i+4].shape)
 
     return np.linalg.pinv(Je,rcond=ZERO_TOL) @ twist_cmd
 
@@ -101,6 +107,6 @@ if __name__ == "__main__":
 
     [V_cmd, Xerr, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,k,Xerr_integral_sum)
 
-    velocity_cmd = get_velocities_from_twist(V_cmd,current_position)
+    velocity_cmd = get_velocities_from_twist(V_cmd, current_position, np.array([False]*5))
 
     # TODO - implement self collisions at this step?
