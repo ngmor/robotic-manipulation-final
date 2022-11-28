@@ -42,7 +42,7 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
     # velocity_limits = np.array([1000000000]*9)
     # TODO - use real values
-    velocity_limits = np.array([20,20,20,20,1,1,1,1,1])
+    velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
 
     # Gain constants
     # TODO
@@ -90,12 +90,12 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
         velocity_cmd = get_velocities_from_twist(twist_cmd, current_config)
 
         # Simulate next state
-        [next_config, next_velocities] = NextState(current_config, velocity_cmd, 
+        [current_config, next_velocities] = NextState(current_config, velocity_cmd, 
                                                       velocity_limits, dt)
 
-        # Add gripper control to get full config
-        # TODO - move this into NextState?
-        current_config = np.hstack((next_config, np.array([gripper_control])))
+        # Add gripper control
+        current_config[-1] = gripper_control
+        
 
         # TODO - figure out how to use k in the other functions
         # TODO - store error
@@ -124,20 +124,17 @@ if __name__ == "__main__":
     config_ini = np.array([np.pi/6,-0.75,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])
     # config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
 
-
-    # TODO - change these into a function to generate from x,y,theta
-    # May also need to account for the height of the cube (see wiki)
-
     # initial cube transform
-    # Tsc_ini = calculate_Tsc(1.,0.,0.)
-    Tsc_ini = calculate_Tsc(1.5,0.5,np.pi/3)
+    Tsc_ini = calculate_Tsc(1.,0.,0.)
+    # Tsc_ini = calculate_Tsc(1.5,0.5,np.pi/3)
 
     # final cube transform
-    # Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
-    Tsc_fin = calculate_Tsc(0.25,-1.5,-np.pi/3.)
+    Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+    # Tsc_fin = calculate_Tsc(0.25,-1.5,-np.pi/3.)
 
 
     # define timing information
     dt = 0.01 # sec
+    total_time = 25 # sec
 
-    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt)
+    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time)

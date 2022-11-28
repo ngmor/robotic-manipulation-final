@@ -9,8 +9,8 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
     Determine the next state of the robot based on first order Euler integration.
 
     Args:
-        positions (np-array, 12-vector): current position of robot, in this order:
-            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4]
+        positions (np-array, 13-vector): current position of robot, in this order:
+            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4, gripper]
         velocities (np-array, 9-vector): control velocities, in this order:
             [W1d, W2d, W3d, W4d, J1d, J2d, J3d, J4d, J5d]
         max_velocities (np-array, 9-vector): velocity limits, in this order:
@@ -20,8 +20,8 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
             in this order:
             [W1dd, W2dd, W3dd, W4dd, J1dd, J2dd, J3dd, J4dd, J5dd]
     Returns:
-        next_positions (np-array, 12-vector): next position of robot, in this order:
-            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4]
+        next_positions (np-array, 13-vector): next position of robot, in this order:
+            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4, gripper]
         next_joint_and_wheel_vel (np-array, 9-vector): next velocities, in this order:
             [W1d, W2d, W3d, W4d, J1d, J2d, J3d, J4d, J5d]
     """    
@@ -30,6 +30,7 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
     chassis_pos = np.array(positions[0:3])
     joint_pos = np.array(positions[3:8])
     wheel_pos = np.array(positions[8:12])
+    gripper = np.array(positions[-1])
     joint_and_wheel_pos = np.hstack((wheel_pos,joint_pos))
 
     # Make sure velocity limits are magnitudes
@@ -93,7 +94,7 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
     next_joint_pos = next_joint_and_wheel_pos[4:9]
 
 
-    next_positions = np.hstack((next_chassis_pos, next_joint_pos, next_wheel_pos))
+    next_positions = np.hstack((next_chassis_pos, next_joint_pos, next_wheel_pos,gripper))
 
     return next_positions, next_joint_and_wheel_vel
 
