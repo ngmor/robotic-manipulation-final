@@ -64,7 +64,9 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
     # We want to output a csv with total_time / dt lines, which is also N / k lines
     # Init configuration trajectory
-    config_traj_csv = np.zeros((int(N / k), ref_traj_csv.shape[1]))
+    num_timesteps = int(N/k)
+    config_traj_csv = np.zeros((num_timesteps, ref_traj_csv.shape[1]))
+    Xerr_csv = np.zeros((num_timesteps, 6))
     
     # initial state
     current_config = np.copy(config_ini)
@@ -76,11 +78,6 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
     print('Begin animation generation.')
     for i in range(N - 1):
-        # store state every kth timestep
-        if (i % k) == 0:
-            config_traj_csv[j,:] = np.copy(current_config)
-            j += 1
-
         # Get current actual Tse
         Tse_act = calculate_Tse(current_config)
 
@@ -100,23 +97,30 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
         velocity_cmd = get_velocities_from_twist(twist_cmd, current_config)
 
         # Simulate next state
-        [current_config, next_velocities] = NextState(current_config, velocity_cmd, 
+        [next_config, next_velocities] = NextState(current_config, velocity_cmd, 
                                                       velocity_limits, dt, k)
 
         # Add gripper control
-        current_config[-1] = gripper_control
+        next_config[-1] = gripper_control
         
+        # store state every kth timestep
+        if (i % k) == 0:
+            config_traj_csv[j,:] = np.copy(current_config)
+            Xerr_csv[j,:] = np.copy(Xerr)
+            j += 1
 
-        # TODO - figure out how to use k in the other functions
-        # TODO - store error
+        # update current config
+        current_config = np.copy(next_config)
+
         # TODO - handle joint limits
 
-    # Store final state
-    # config_traj_csv[j+1,:] = np.copy(current_config)
+    print('Animation generation complete.')
 
     # Save to CSV
+    print('Writing animation and errors to files.')
     generate_csv('simulate_youbot.csv',config_traj_csv,folder='csv')
-    print('Animation generation complete.')
+    generate_csv('error.csv',Xerr_csv,folder='csv')
+    print('Done.')
 
 
 
