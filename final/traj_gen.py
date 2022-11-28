@@ -31,17 +31,20 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
         traj_csv (np-array, nx13): Generated trajectory in as matrix of csv lines
     """    
 
+    # Get actual timestep
+    timestep = dt / k
+
     # get total number of timesteps
-    N = int(np.ceil(total_time*k / dt))
+    N = int(np.ceil(total_time / timestep))
     method = 5
 
     # Divide each segment's timesteps
     # based on input times for each segment
-    N2 = int(np.ceil(standoff_time)*k / dt)
+    N2 = int(np.ceil(standoff_time) / timestep)
     N4 = N2
     N6 = N2
     N8 = N2
-    N3 = int(np.ceil((1.2 * gripper_actuate_time)*k / dt))
+    N3 = int(np.ceil((1.2 * gripper_actuate_time) / timestep))
     N7 = N3
     N1 = int(np.ceil((N - (N2 + N3 + N4 + N6 + N7 + N8)) / 2.))
     N5 = N - (N1 + N2 + N3 + N4 + N6 + N7 + N8)
@@ -57,7 +60,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     Tse_pick_standoff = Tsc_ini @ Tce_standoff
 
     # Generate trajectory
-    seg1 = mr.ScrewTrajectory(Tse_ini, Tse_pick_standoff, (N1 - 1)*dt, N1, method)
+    seg1 = mr.ScrewTrajectory(Tse_ini, Tse_pick_standoff, (N1 - 1)*timestep, N1, method)
 
     # Store in trajectory matrix
     gripper_control = 0
@@ -73,7 +76,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     Tse_pick = Tsc_ini @ Tce_grasp
 
     # Generate trajectory
-    seg2 = mr.CartesianTrajectory(Tse_pick_standoff, Tse_pick, (N2 - 1)*dt, N2, method)
+    seg2 = mr.CartesianTrajectory(Tse_pick_standoff, Tse_pick, (N2 - 1)*timestep, N2, method)
 
     # Store in trajectory matrix
     for i in range(len(seg2)):
@@ -96,7 +99,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     # Move gripper back up to pick standoff
     
     # Generate trajectory
-    seg4 = mr.CartesianTrajectory(Tse_pick, Tse_pick_standoff, (N4 - 1)*dt, N4, method)
+    seg4 = mr.CartesianTrajectory(Tse_pick, Tse_pick_standoff, (N4 - 1)*timestep, N4, method)
 
     # Store in trajectory matrix
     for i in range(len(seg4)):
@@ -112,7 +115,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     Tse_place_standoff = Tsc_fin @ Tce_standoff
     
     # Generate trajectory
-    seg5 = mr.ScrewTrajectory(Tse_pick_standoff, Tse_place_standoff, (N5 - 1)*dt, N5, method)
+    seg5 = mr.ScrewTrajectory(Tse_pick_standoff, Tse_place_standoff, (N5 - 1)*timestep, N5, method)
 
     # Store in trajectory matrix
     for i in range(len(seg5)):
@@ -128,7 +131,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     Tse_place = Tsc_fin @ Tce_grasp
 
     # Generate trajectory
-    seg6 = mr.CartesianTrajectory(Tse_place_standoff, Tse_place, (N6 - 1)*dt, N6, method)
+    seg6 = mr.CartesianTrajectory(Tse_place_standoff, Tse_place, (N6 - 1)*timestep, N6, method)
 
     # Store in trajectory matrix
     for i in range(len(seg6)):
@@ -151,7 +154,7 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
     # Move gripper back up to place standoff
 
     # Generate trajectory
-    seg8 = mr.CartesianTrajectory(Tse_place, Tse_place_standoff, (N8 - 1)*dt, N8, method)
+    seg8 = mr.CartesianTrajectory(Tse_place, Tse_place_standoff, (N8 - 1)*timestep, N8, method)
 
     # Store in trajectory matrix
     for i in range(len(seg8)):

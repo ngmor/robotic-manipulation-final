@@ -50,14 +50,21 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     ki = 0.5
 
     # Calculate reference trajectory
+    print('Begin reference trajectory generation.')
     [ref_traj_tf, ref_traj_csv] = TrajectoryGenerator(Tse_des_ini, Tsc_ini, Tsc_fin, 
                                                       Tce_grasp, Tce_standoff, k, dt, total_time,
                                                       gripper_actuate_time, standoff_time)
 
     generate_csv('traj.csv',ref_traj_csv,folder='csv')
+    print('Reference trajectory generation complete.')
 
+    # Total number of iterations = total_time / (dt / k)
+    # this is the size of the reference trajectory
+    N = ref_traj_csv.shape[0]
+
+    # We want to output a csv with total_time / dt lines, which is also N / k lines
     # Init configuration trajectory
-    config_traj_csv = np.zeros(ref_traj_csv.shape)
+    config_traj_csv = np.zeros((int(N / k), ref_traj_csv.shape[1]))
     
     # initial state
     current_config = np.copy(config_ini)
@@ -65,11 +72,14 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
     # Init integral sum
     Xerr_integral_sum = np.array([0.]*6)
 
-    N = config_traj_csv.shape[0]
+    j = 0
 
+    print('Begin animation generation.')
     for i in range(N - 1):
-        # store state
-        config_traj_csv[i,:] = np.copy(current_config)
+        # store state every kth timestep
+        if (i % k) == 0:
+            config_traj_csv[j,:] = np.copy(current_config)
+            j += 1
 
         # Get current actual Tse
         Tse_act = calculate_Tse(current_config)
@@ -83,15 +93,15 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
 
         # Calculate control law
-        [twist_cmd, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,
-                                                         kp,ki,dt,Xerr_integral_sum)
+        [twist_cmd, Xerr, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,
+                                                               kp,ki,dt,k,Xerr_integral_sum)
 
         # Convert commanded twist to commanded velocities
         velocity_cmd = get_velocities_from_twist(twist_cmd, current_config)
 
         # Simulate next state
         [current_config, next_velocities] = NextState(current_config, velocity_cmd, 
-                                                      velocity_limits, dt)
+                                                      velocity_limits, dt, k)
 
         # Add gripper control
         current_config[-1] = gripper_control
@@ -102,10 +112,11 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
         # TODO - handle joint limits
 
     # Store final state
-    config_traj_csv[i+1,:] = np.copy(current_config)
+    # config_traj_csv[j+1,:] = np.copy(current_config)
 
     # Save to CSV
     generate_csv('simulate_youbot.csv',config_traj_csv,folder='csv')
+    print('Animation generation complete.')
 
 
 
@@ -136,5 +147,8 @@ if __name__ == "__main__":
     # define timing information
     dt = 0.01 # sec
     total_time = 25 # sec
+    k = 2
 
-    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time)
+    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time, k=k)
+
+    # TODO logfile/feedback

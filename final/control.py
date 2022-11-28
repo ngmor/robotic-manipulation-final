@@ -9,7 +9,7 @@ import modern_robotics as mr
 import numpy as np
 from common import calculate_Tse, get_full_Jacobian, ZERO_TOL
 
-def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
+def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,k,Xerr_integral_sum):
     """
     Determine commanded end-effector twist by comparing current configuration with reference trajectory.
 
@@ -26,8 +26,12 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
         Xerr_integral_sum: (np-array, 6-vector): updated summed integral error
     """
     
+    # Get actual timestep for this function:
+    timestep = dt / k
+
+
     # Calculate feedforward reference twist
-    Vd_mat = mr.MatrixLog6(np.linalg.inv(Tse_des) @ Tse_des_next) / dt
+    Vd_mat = mr.MatrixLog6(np.linalg.inv(Tse_des) @ Tse_des_next) / timestep
     Vd = mr.se3ToVec(Vd_mat)
     
     XinvXdes = np.linalg.inv(Tse_act) @ Tse_des
@@ -37,7 +41,7 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     Xerr = mr.se3ToVec(Xerr_mat)
 
     # Add to integral sum
-    Xerr_integral_sum += Xerr * dt
+    Xerr_integral_sum += Xerr * timestep
 
     # Generate gain matrices
     I6 = np.eye(len(Xerr),len(Xerr))
@@ -48,7 +52,7 @@ def FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum):
     # TODO doesn't this use feedback (i.e. the current position) for the feedforward control?
     V = mr.Adjoint(XinvXdes) @ Vd + Kp @ Xerr + Ki @ Xerr_integral_sum
     
-    return V, Xerr_integral_sum
+    return V, Xerr, Xerr_integral_sum
 
 def get_velocities_from_twist(twist_cmd,config):
     """
@@ -92,9 +96,10 @@ if __name__ == "__main__":
     kp = 1
     ki = 0
     dt = 0.01
+    k = 1
     Xerr_integral_sum = np.array([0.]*6)
 
-    [V_cmd, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,Xerr_integral_sum)
+    [V_cmd, Xerr, Xerr_integral_sum] = FeedbackControl(Tse_act, Tse_des,Tse_des_next,kp,ki,dt,k,Xerr_integral_sum)
 
     velocity_cmd = get_velocities_from_twist(V_cmd,current_position)
 

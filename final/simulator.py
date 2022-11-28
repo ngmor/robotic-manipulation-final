@@ -4,7 +4,7 @@ import modern_robotics as mr
 import numpy as np
 from common import CHASSIS_H0, generate_csv, ZERO_TOL
 
-def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
+def NextState(positions, velocities, velocity_limits,dt,k,accelerations=None):
     """
     Determine the next state of the robot based on first order Euler integration.
 
@@ -25,6 +25,9 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
         next_joint_and_wheel_vel (np-array, 9-vector): next velocities, in this order:
             [W1d, W2d, W3d, W4d, J1d, J2d, J3d, J4d, J5d]
     """    
+
+    # Get actual timestep for this simulator:
+    timestep = dt / k
 
     # Separate positions
     chassis_pos = np.array(positions[0:3])
@@ -48,7 +51,7 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
         joint_and_wheel_accel = np.copy(accelerations)
 
     # Use first order Euler integration to get new joint and wheel angles/speeds
-    [next_joint_and_wheel_pos, next_joint_and_wheel_vel] = mr.EulerStep(joint_and_wheel_pos, joint_and_wheel_vel, joint_and_wheel_accel, dt)
+    [next_joint_and_wheel_pos, next_joint_and_wheel_vel] = mr.EulerStep(joint_and_wheel_pos, joint_and_wheel_vel, joint_and_wheel_accel, timestep)
 
     # Limit output velocities with the input limits
     next_joint_and_wheel_vel = np.where(next_joint_and_wheel_vel > velocity_limits_mag, velocity_limits_mag, next_joint_and_wheel_vel)
@@ -77,7 +80,7 @@ def NextState(positions, velocities, velocity_limits,dt,accelerations=None):
         ])
 
     # Correct for timestep
-    delta_q_b *= dt
+    delta_q_b *= timestep
 
     # Get change in fixed frame state
     phi = chassis_pos[0]
@@ -103,10 +106,11 @@ if __name__ == "__main__":
 
     # Testing code
 
-    positions = np.array([0]*12)
+    positions = np.array([0]*13)
     velocities = np.array([0]*9)
     max_velocities = np.array([10]*9)
     dt = 0.01
+    k = 1
     N = int(1.0/dt)
 
     position_list = np.zeros((N,13))
@@ -114,8 +118,8 @@ if __name__ == "__main__":
     velocities[0:4] = [10,10,10,10]
     next_velocities = np.copy(velocities)
     for i in range(N):
-        position_list[i,0:12] = next_positions
-        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+        position_list[i,:] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt, k)
         
 
     generate_csv('simulate_x.csv',position_list,folder='csv')
@@ -125,8 +129,8 @@ if __name__ == "__main__":
     velocities[0:4] = [-10,10,-10,10]
     next_velocities = np.copy(velocities)
     for i in range(N):
-        position_list[i,0:12] = next_positions
-        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+        position_list[i,:] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt, k)
         
 
     generate_csv('simulate_y.csv',position_list,folder='csv')
@@ -136,8 +140,8 @@ if __name__ == "__main__":
     velocities[0:4] = [-10,10,10,-10]
     next_velocities = np.copy(velocities)
     for i in range(N):
-        position_list[i,0:12] = next_positions
-        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+        position_list[i,:] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt, k)
 
     generate_csv('simulate_rotate.csv',position_list,folder='csv')
 
@@ -147,8 +151,8 @@ if __name__ == "__main__":
     max_velocities[0:4] = [5,5,5,5]
     next_velocities = np.copy(velocities)
     for i in range(N):
-        position_list[i,0:12] = next_positions
-        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+        position_list[i,:] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt, k)
 
     generate_csv('simulate_limited.csv',position_list,folder='csv')
 
@@ -157,8 +161,8 @@ if __name__ == "__main__":
     velocities[0:9] = [0,0,0,0,1,1,1,1,1]
     next_velocities = np.copy(velocities)
     for i in range(N):
-        position_list[i,0:12] = next_positions
-        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt)
+        position_list[i,:] = next_positions
+        [next_positions, next_velocities] = NextState(next_positions, next_velocities, max_velocities,dt, k)
 
     generate_csv('simulate_arm.csv',position_list,folder='csv')
 
