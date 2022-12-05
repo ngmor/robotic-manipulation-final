@@ -8,9 +8,34 @@ from traj_gen import TrajectoryGenerator
 from simulator import NextState
 from control import FeedbackControl, get_velocities_from_twist
 
-def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
+def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, velocity_limits, kp, ki,
                     total_time=25, gripper_actuate_time=0.625, standoff_time=1.5, k=1):
-    """TODO"""
+    """
+    Generates a CSV of simulated configurations of the youbot moving to pick up a cube.
+
+    Also generated are the reference trajectory CSV and a CSV that tracks the error twist over 
+    the length of the simulation.
+
+    Args:
+        Tse_des_ini (4x4 np array): SE(3) transform from space frame to end effector at its initial 
+                                    desired location
+        config_ini (np-array, 13-vector): initial configuration of robot, in this order:
+            [chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4, gripper]
+        Tsc_ini (4x4 np array): SE(3) transform from space frame to cube at it's initial location
+        Tsc_fin (4x4 np array): SE(3) transform from space frame to cube at it's final location
+        dt (float): timestep in seconds
+        velocity_limits (np-array, 9-vector): velocity limits, in this order:
+            [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
+        kp (float): proportional gain constant
+        ki (float): integral gain constant
+        total_time (int, optional): total time for youbot to complete its task. Defaults to 25.
+        gripper_actuate_time (float, optional): time for the gripper to actuate in seconds.
+                                                Defaults to 0.625.
+        standoff_time (float, optional): time to move from the standoff position to the grasp 
+                                         position in seconds. Defaults to 1.5.
+        k (int, optional): number of trajectory reference configurations per dt seconds.
+                           Defaults to 1.
+    """    
 
     # grasp transform
     # Rotated around the y axis from the cube position by the specified angle
@@ -26,7 +51,7 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
     # grasp to standoff transform
     # Translated up from the grasp position by the specified standoff height
-    standoff_height = 0.075
+    standoff_height = 0.075 # m
     Tgrasp_standoff = np.array([
         [1,0,0,0],
         [0,1,0,0],
@@ -45,18 +70,6 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
         [-np.pi/2, np.pi/2], # J4
         [-np.pi/2, ZERO_TOL] # J5
     ]).T
-
-    # Joint velocity limits
-    # TODO - make these inputs?
-    # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
-    # velocity_limits = np.array([1000000000]*9)
-    # TODO - use real values
-    # velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
-    velocity_limits = np.array([20,20,20,20,2,2,2,2,2])
-
-    # Gain constants
-    kp = 2.
-    ki = 1.
 
     # Calculate reference trajectory
     print('Begin reference trajectory generation.')
@@ -118,7 +131,6 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
             # Test if any joints violate joint limits
             joint_test = test_joint_limits(next_config, joint_limits)
-            
 
             # If any joints are invalid, retry
             valid_joints = not np.any(joint_test)
@@ -131,7 +143,6 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
                 print('Error, could not resolve without violating joint limit.')
                 print(invalid_joint)
                 print(i)
-                # TODO
                 exit()
         
         # store state every kth timestep
@@ -142,8 +153,6 @@ def simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt,
 
         # update current config
         current_config = np.copy(next_config)
-
-        # TODO - handle joint limits
 
     print('Animation generation complete.')
 
@@ -166,22 +175,31 @@ if __name__ == "__main__":
     ])
 
     # initial actual end effector transform
-    # TODO - add error
-    config_ini = np.array([np.pi/6,-0.75,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])
     # config_ini = np.array([0,-0.517,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])  # matches initial desired
+    config_ini = np.array([np.pi/6,-0.75,0,0,-0.7,0.7,-np.pi/2,0,0,0,0,0,0])
 
     # initial cube transform
-    # Tsc_ini = calculate_Tsc(1.,0.,0.)
-    Tsc_ini = calculate_Tsc(1.0,0.5,1.0)
+    Tsc_ini = calculate_Tsc(1.,0.,0.)
+    # Tsc_ini = calculate_Tsc(1.0,0.5,1.0)
 
     # final cube transform
-    # Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
-    Tsc_fin = calculate_Tsc(0.25,-1.5,-1.0)
+    Tsc_fin = calculate_Tsc(0.,-1.,-np.pi/2.)
+    # Tsc_fin = calculate_Tsc(0.25,-1.5,-1.0)
 
+    # Joint velocity limits
+    # [W1_lim, W2_lim, W3_lim, W4_lim, J1_lim, J2_lim, J3_lim, J4_lim, J5_lim]
+    # velocity_limits = np.array([np.inf]*9)
+    # velocity_limits = np.array([10,10,10,10,1,1,1,1,1])
+    velocity_limits = np.array([20,20,20,20,2,2,2,2,2])
+
+    # Gain constants
+    kp = 3.0
+    ki = 0.
 
     # define timing information
     dt = 0.01 # sec
-    total_time = 20 # sec
+    total_time = 15 # sec
     k = 2
 
-    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, total_time=total_time, k=k)
+    simulate_youbot(Tse_des_ini, config_ini, Tsc_ini, Tsc_fin, dt, velocity_limits, kp, ki,
+                    total_time=total_time, k=k)

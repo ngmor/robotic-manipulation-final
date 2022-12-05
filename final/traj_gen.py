@@ -24,12 +24,14 @@ def TrajectoryGenerator(Tse_ini,Tsc_ini,Tsc_fin,Tce_grasp,Tce_standoff,k,
         dt (float): timestep in seconds
         total_time (float): total trajectory time in seconds
         gripper_actuate_time (float): time for the gripper to actuate in seconds
-        standoff_time (float): time to move from the standoff position to the grasp position in seconds
+        standoff_time (float): time to move from the standoff position to the grasp position in
+                               seconds
 
     Returns:
-        traj_tf (list of n elements): Generated trajectory as a series of [SE3 transformation, gripper_control] entries
+        traj_tf (list of n elements): Generated trajectory as a series of
+                                      [SE3 transformation, gripper_control] entries
         traj_csv (np-array, nx13): Generated trajectory in as matrix of csv lines
-    """    
+    """
 
     # Get actual timestep
     timestep = dt / k
