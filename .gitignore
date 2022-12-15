@@ -1,6 +1,3 @@
-# Project specific
-asst2/csv/test.csv
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
