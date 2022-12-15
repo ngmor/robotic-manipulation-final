@@ -21,15 +21,15 @@ Each module contains example code of how to run its functions at the end, in the
 Also included is `plot_error.py`, which generates a plot of the error twist components over the course of the simulation. To generate these plots from the error CSVs created by the `simulate_youbot` function, edit the filename in line 6 of `plot_error.py` to point to the correct file path and run the script. The default filename should point to the most recently produced error file, if the the script that created that error file was run in the same directory as `plot_error.py`.
 
 Python module dependencies:
-    • `numpy`
-    • `os`
-    • `matplotlib`
-    • `modern_robotics`
+- `numpy`
+- `os`
+- `matplotlib`
+- `modern_robotics`
 
 Outputs:
-    • `simulate_youbot.csv` – simulated trajectory of youBot for animation in CoppeliaSim
-    • `error.csv` – values of error twist components through the duration of the simulation
-    • `traj.csv` – the desired reference trajectory of the youBot’s end effector.
+- `simulate_youbot.csv` – simulated trajectory of youBot for animation in CoppeliaSim
+- `error.csv` – values of error twist components through the duration of the simulation
+- `traj.csv` – the desired reference trajectory of the youBot’s end effector.
 
 ## Self-Collision Avoidance
 Also built into the `simulate_youbot` function are joint limits intended to prevent the robot from colliding with itself. These joint limits were chosen by inspection, using the sliders in [CoppeliaSim Scene3_youbot](http://hades.mech.northwestern.edu/index.php/CoppeliaSim_Introduction#Scene_3:_Interactive_youBot) to view joint motion that might cause self collision.
